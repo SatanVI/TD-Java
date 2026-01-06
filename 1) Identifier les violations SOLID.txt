@@ -1,0 +1,102 @@
+1) Identifier les violations SOLID
+
+(SRP)  
+OrderManager gère plusieurs responsabilités (création de commandes, stockage, facturation, notifications).
+  
+(OCP) 
+OrderManager nécessite des modifications pour ajouter de nouveaux types de stockage ou notifications.
+
+(LSP)
+ Les sub-classes ne favorisent pas la substitution si elles ne respectent pas les attentes de la classe parente.
+
+(ISP)  
+Les clients pourraient dépendre de méthodes qu'ils n'utilisent pas si `OrderManager` était une interface.
+
+(DIP)
+OrderManager dépend de classes concrètes (stockage, facturation, notifications).
+
+2) Proposer une architecture SOLID
+
+	Interfaces
+
+public interface IStorage {
+    void saveOrder(Order order);
+}
+
+public interface IFactureGenerator {
+    String generateFacture(Order order);
+}
+
+public interface INotificationService {
+    void notify(Order order);
+}
+
+
+	Classes d'implémentation
+
+public class DatabaseStorage implements IStorage {
+    @Override
+    public void saveOrder(Order order) {
+       
+    }
+}
+
+public class FileStorage implements IStorage {
+    @Override
+    public void saveOrder(Order order) {
+        
+    }
+}
+
+public class PDFGenerator implements IFactureGenerator {
+    @Override
+    public String generateFacture(Order order) {
+               return "Facture PDF générée";
+    }
+}
+
+public class EmailNotification implements INotificationService {
+    @Override
+    public void notify(Order order) {
+    }
+}
+
+public class SMSNotification implements INotificationService {
+    @Override
+    public void notify(Order order) {
+    }
+}
+
+
+Classe `OrderManager` 
+
+public class OrderManager {
+    private IStorage storage;
+    private IFactureGenerator factureGenerator;
+    private INotificationService notificationService;
+
+    public OrderManager(IStorage storage, IFactureGenerator factureGenerator, INotificationService notificationService) {
+        this.storage = storage;
+        this.factureGenerator = factureGenerator;
+        this.notificationService = notificationService;
+    }
+
+    public void createOrder(Order order) {
+        if (order.getTotal() <= 0) {
+            throw new RuntimeException("Invalid");
+        }
+        
+        storage.saveOrder(order);
+        String facture = factureGenerator.generateFacture(order);
+        
+        notificationService.notify(order);
+    }
+}
+
+
+3) Assemblage
+
+IStorage storage = new DatabaseStorage();  
+IFactureGenerator factureGenerator = new PDFGenerator();
+INotificationService notificationService = new EmailNotification();  
+OrderManager orderManager = new OrderManager(storage, factureGenerator, notificationService);
